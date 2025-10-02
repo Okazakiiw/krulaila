@@ -1,0 +1,38 @@
+:root{
+  --bg:#f6f9ff;
+  --glass:#ffffff;
+  --text:#0f172a;
+  --muted:#64748b;
+  --border:#e5efff;
+  --brand:#2563eb;
+  --brand2:#38bdf8;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;font-family:'Noto Sans Thai',system-ui,sans-serif;background:var(--bg);color:var(--text)}
+a{color:#0ea5e9;text-decoration:none}
+a:hover{text-decoration:underline}
+.container{max-width:1100px;margin:auto;padding:16px}
+.theme.light{background:radial-gradient(1000px 600px at 10% -10%,#e9f2ff 0%,#f6f9ff 60%)}
+.glass{background:var(--glass);border:1px solid var(--border);border-radius:14px;box-shadow:0 6px 24px rgba(37,99,235,.08)}
+.pad{padding:16px}
+.pad-sm{padding:10px}
+.row{display:flex;align-items:center}
+.col{display:flex;flex-direction:column}
+.wrap{flex-wrap:wrap}
+.gap{gap:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:16px}
+.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.card{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:#fff}
+.card .media{aspect-ratio:16/10;object-fit:cover;width:100%;background:#eef4ff}
+.card .pad{padding:12px}
+.btn{appearance:none;border:none;background:var(--brand);color:#fff;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:600;box-shadow:0 4px 16px rgba(37,99,235,.16)}
+.btn:hover{filter:brightness(.98)}
+.btn.outline{background:#fff;color:var(--brand);border:1px solid var(--brand)}
+.btn.danger{background:#ef4444}
+.muted{color:var(--muted)}
+input,select,textarea{padding:10px;border:1px solid var(--border);border-radius:10px;background:#fff;min-width:140px}
+label.btn{display:inline-flex;align-items:center;gap:8px}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;background:#eef2ff;border:1px solid #dbe7ff;color:#334155;font-size:12px}
+.item-row{display:flex;align-items:center;gap:10px;border:1px dashed var(--border);padding:8px;border-radius:10px}
+.item-row img{width:56px;height:40px;object-fit:cover;border-radius:6px;background:#eef4ff}
+small code{background:#eef4ff;border:1px solid #dbe7ff;padding:2px 6px;border-radius:6px}

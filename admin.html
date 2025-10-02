@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>แผงผู้ดูแล | Real Estate Demo</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body class="theme light">
+  <header class="container">
+    <h1>แผงผู้ดูแล</h1>
+    <nav class="row gap">
+      <a class="btn" href="./index.html">ดูหน้าเว็บไซต์</a>
+      <button id="btnExport" class="btn">ส่งออก JSON (รวมรูป)</button>
+      <label class="btn">
+        นำเข้า JSON
+        <input id="fileImport" type="file" accept="application/json" hidden />
+      </label>
+      <button id="btnClear" class="btn danger outline">ล้างข้อมูลในเครื่อง</button>
+    </nav>
+  </header>
+
+  <main class="container grid-2">
+    <section class="glass pad">
+      <h2>เพิ่ม/แก้ไขรายการ</h2>
+      <form id="formItem" class="col gap">
+        <input id="f_id" type="number" placeholder="ID (ปล่อยว่างให้รันอัตโนมัติ)" />
+        <input id="f_title" required placeholder="ชื่อประกาศ" />
+        <textarea id="f_desc" rows="3" placeholder="รายละเอียด"></textarea>
+        <input id="f_price" type="number" required placeholder="ราคา (บาท)" />
+        <label>รูปภาพหลัก <input id="f_image" type="file" accept="image/*" /></label>
+        <div class="row gap">
+          <button class="btn" type="submit">บันทึก</button>
+          <button class="btn outline" type="reset">ล้างฟอร์ม</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="glass pad">
+      <h2>รายการทั้งหมด</h2>
+      <div id="adminList" class="col gap"></div>
+    </section>
+  </main>
+
+  <footer class="container muted pad-sm">
+    <small>หมายเหตุ: โครงการตัวอย่างเก็บ metadata ใน <code>localStorage</code> และรูปใน <code>IndexedDB</code> พร้อมปุ่มส่งออก/นำเข้า JSON</small>
+  </footer>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
