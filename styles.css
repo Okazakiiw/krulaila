@@ -1,0 +1,302 @@
+:root{
+  --bg:#f6f9ff;
+  --glass:#ffffff;
+  --text:#0f172a;
+  --muted:#64748b;
+  --border:#e5efff;
+  --brand:#2563eb;
+  --brand2:#38bdf8;
+}
+
+*{box-sizing:border-box}
+html,body{
+  margin:0;
+  padding:0;
+  font-family:"Noto Sans Thai",system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+a{color:#0ea5e9;text-decoration:none}
+a:hover{text-decoration:underline}
+
+.theme.light{
+  background:radial-gradient(1000px 600px at 10% -10%,#e9f2ff 0%,#f6f9ff 60%);
+}
+
+.glass{
+  background:var(--glass);
+  border:1px solid var(--border);
+  border-radius:14px;
+  box-shadow:0 6px 24px rgba(37,99,235,.08);
+}
+
+.container{max-width:1200px;margin:auto;padding:20px}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 16px}
+.brand{font-weight:800;color:var(--brand);letter-spacing:.3px}
+
+.btn{
+  background:linear-gradient(135deg,var(--brand),var(--brand2));
+  color:#fff;
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  box-shadow:0 8px 20px rgba(37,99,235,.25);
+}
+.btn:hover{transform:translateY(-1px)}
+.btn-ghost{
+  background:#f0f7ff;
+  color:var(--brand);
+  border:1px solid var(--border);
+  box-shadow:none;
+}
+.btn-secondary{
+  background:#e6f2ff;
+  color:#0b5bd3;
+  border:1px solid #cfe3ff;
+  box-shadow:none;
+}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+
+.input{
+  padding:10px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:#f8fbff;
+  color:var(--text);
+  width:100%;
+}
+.input:focus{outline:2px solid rgba(37,99,235,.25)}
+
+.card{padding:16px;margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.small{font-size:12px;color:var(--muted)}
+.notice{background:#eef6ff;border:1px solid var(--border);color:#0b5bd3;padding:8px 10px;border-radius:10px}
+
+.preview-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+  gap:8px;
+  margin-top:10px;
+}
+.preview-grid img{
+  width:100%;
+  height:100px;
+  object-fit:cover;
+  border-radius:10px;
+  border:1px solid var(--border);
+}
+
+.table-wrap table{width:100%;border-collapse:collapse}
+th,td{border-bottom:1px solid var(--border);padding:8px;text-align:left}
+.table-wrap button.btn-ghost{padding:6px 10px}
+
+/* ===== Layout แผนที่ + รายการ ===== */
+.map-list{
+  display:grid;
+  grid-template-columns: 1fr 420px;
+  gap:16px;
+}
+
+#map{
+  height:70vh;
+  min-height:420px;
+  border-radius:14px;
+  background:#e6f0ff;
+  border:1px solid var(--border);
+}
+
+/* ===== คอลัมน์ขวา: detailPanel + listings ===== */
+.list-col{
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr;
+  height: 70vh;
+  overflow: hidden;
+}
+
+.list-col::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:rgba(15,23,42,.25);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .2s ease;
+}
+.list-col.has-detail::before{
+  opacity:1;
+  pointer-events:auto;
+}
+
+/* ===== detailPanel (overlay) ===== */
+.detail-panel{
+  position: absolute;
+  inset: 0 auto auto 0;
+  right: 0;
+  z-index: 5;
+  width: 100%;
+  max-height: 80%;
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(0,0,0,.15);
+  display: none;
+}
+.detail-panel.is-open{ display:block; }
+
+.detail-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:8px;
+}
+.detail-body{display:grid;gap:8px;word-break:break-word}
+.detail-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.detail-empty{color:var(--muted);font-size:12px}
+
+/* ===== รูปหลัก ===== */
+.gallery-wrap{
+  display:grid;
+  place-items:center;
+  border:1px solid var(--border);
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 4px 10px rgba(0,0,0,0.08);
+  background:#f8fbff;
+  min-height:180px;
+  max-height:320px;
+  margin-bottom:10px;
+}
+.gallery-main{
+  width:100%;
+  height:auto;
+  max-height:300px;
+  object-fit:contain;
+  display:block;
+  border-radius:14px;
+  cursor:zoom-in;
+}
+
+/* ===== รูปย่อย (Thumbnails) ===== */
+.detail-gallery{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:10px;
+  justify-content:flex-start;
+}
+.detail-gallery img{
+  width:100px;
+  height:70px;
+  object-fit:cover;
+  border-radius:8px;
+  border:1px solid var(--border);
+  box-shadow:0 2px 6px rgba(0,0,0,0.08);
+  transition:transform .25s ease, box-shadow .25s ease;
+  cursor:pointer;
+}
+.detail-gallery img:hover{
+  transform:scale(1.05);
+  box-shadow:0 3px 10px rgba(0,0,0,0.15);
+}
+
+/* ===== listings ===== */
+#listings{
+  overflow-y:auto;
+  min-height:0;
+  max-height:100%;
+  padding-right:4px;
+}
+#listings::-webkit-scrollbar{width:8px}
+#listings::-webkit-scrollbar-thumb{
+  background:var(--brand2);
+  border-radius:8px;
+}
+#listings::-webkit-scrollbar-thumb:hover{background:var(--brand)}
+
+/* ===== การ์ดรายการ ===== */
+.card-item{
+  display:grid;
+  grid-template-columns:120px 1fr;
+  border-radius:14px;
+  background:#fff;
+  border:1px solid var(--border);
+  overflow:hidden;
+  margin-bottom:10px;
+}
+.card-item img{width:120px;height:100%;object-fit:cover}
+.card-item .content{padding:10px}
+.price-plain{
+  display:block;
+  margin-top:6px;
+  font-weight:900;
+  font-size:18px;
+  line-height:1.1;
+  letter-spacing:.2px;
+  color:#0b5bd3;
+}
+.price-plain .unit{
+  font-weight:700;
+  font-size:12px;
+  color:var(--muted);
+  margin-left:6px;
+}
+
+/* ===== marker + tooltip ===== */
+.thumb-marker{
+  display:flex;align-items:center;justify-content:center;
+  width:52px;height:52px;border-radius:50%;
+  box-shadow:0 6px 16px rgba(0,0,0,.18);
+  border:2px solid #fff;overflow:hidden;background:#fff;
+}
+.thumb-marker img{width:100%;height:100%;object-fit:cover}
+.leaflet-tooltip.thumb-tip{
+  background:#fff;border:1px solid var(--border);
+  border-radius:10px;padding:4px;
+  box-shadow:0 10px 20px rgba(0,0,0,.12)
+}
+.leaflet-tooltip.thumb-tip img{
+  width:160px;height:110px;object-fit:cover;display:block;border-radius:6px;
+}
+
+/* ===== modal ===== */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:9999}
+.modal-content{width:min(880px,92vw);max-height:90vh;overflow:auto;padding:12px}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+
+/* ===== chips ===== */
+.chip-list{display:flex;gap:8px;flex-wrap:wrap}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 10px;border:1px solid var(--border);
+  border-radius:999px;background:#f8fbff;
+  color:#0b5bd3;font-weight:700;
+}
+.chip .del{
+  background:transparent;border:none;color:#ef4444;cursor:pointer;
+  font-size:16px;line-height:1;padding:0 2px;
+}
+
+/* ===== responsive ===== */
+@media (max-width:900px){
+  .map-list{grid-template-columns:1fr}
+  #map{height:460px}
+  .list-col{
+    height:auto;
+    overflow:visible;
+  }
+  #listings{max-height:40vh}
+  .detail-panel{
+    max-height:calc(100vh - 120px);
+  }
+  .detail-panel .gallery-wrap{max-height:38vh}
+  .gallery-main{max-height:240px}
+}
+@media (max-width:600px){
+  .gallery-main{max-height:200px}
+  .detail-gallery img{ width:70px;height:50px; }
+}

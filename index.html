@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>ครูไลลาขายบ้านและที่ดิน</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Firebase (Compat CDN for simplicity) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+
+  <!-- ใส่ config ของโปรเจ็กต์คุณตรงนี้ -->
+  <script>
+    window.firebaseConfig = {
+      apiKey: "AIzaSyAoMKMzM1-Ya6FF5M649IslWo_eNtQBSQg",
+      authDomain: "laila-18024.firebaseapp.com",
+      projectId: "laila-18024",
+      storageBucket: "laila-18024.firebasestorage.app",
+      messagingSenderId: "44350993909",
+      appId: "1:44350993909:web:49aa8e4e787da32f509cbc",
+    };
+  </script>
+
+  <!-- App -->
+  <script src="app.js" defer></script>
+</head>
+<body class="theme light">
+  <header class="topbar glass">
+    <div class="brand">ครูไลลาขายบ้านและที่ดิน</div>
+    <a class="admin-link btn btn-ghost" href="admin.html">FACEBOOK</a>
+  </header>
+
+  <main class="container">
+    <section class="filters card glass">
+      <div class="row">
+        <label>ประเภท</label>
+        <select id="fltType" class="input">
+          <option value="">ทั้งหมด</option>
+          <!-- จะถูกเติมจาก JS -->
+        </select>
+      </div>
+      <div class="row">
+        <label>ช่วงราคา (บาท)</label>
+        <input type="number" id="fltMin" class="input" placeholder="ต่ำสุด" />
+        <input type="number" id="fltMax" class="input" placeholder="สูงสุด" />
+      </div>
+
+      <!-- ค้นหาที่อยู่ด้วย Nominatim -->
+      <div class="row">
+        <label>ค้นหาที่อยู่</label>
+        <input id="addrQuery" class="input" placeholder="เช่น สยามพารากอน กรุงเทพ" />
+        <button id="addrSearch" class="btn">ค้นหาแผนที่</button>
+      </div>
+      <div id="addrResults" class="addr-results small"></div>
+
+      <div class="row">
+        <button id="applyFilter" class="btn">ค้นหา</button>
+        <button id="clearFilter" class="btn btn-ghost">ล้าง</button>
+      </div>
+    </section>
+
+    <!-- ซ้าย: แผนที่ • ขวา: แผงรายละเอียด + รายการ -->
+    <section class="map-list">
+      <div id="map" class="glass"></div>
+
+      <aside class="list-col">
+        <!-- แผงรายละเอียด (overlay) -->
+        <div id="detailPanel" class="detail-panel glass" style="display:none"></div>
+
+        <!-- รายการ -->
+        <aside id="listings"></aside>
+      </aside>
+    </section>
+  </main>
+
+  <footer class="footer muted small">
+    © <span id="year"></span> ครูไลลาขายบ้านและที่ดิน
+  </footer>
+
+  <!-- Lightbox สำหรับดูภาพเต็ม -->
+  <div id="lightbox"
+      style="position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;
+             align-items:center;justify-content:center;z-index:9999;">
+    <img id="lightboxImg" src=""
+         style="max-width:95vw;max-height:95vh;object-fit:contain;
+                border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.6)">
+  </div>
+</body>
+</html>

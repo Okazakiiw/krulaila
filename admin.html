@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin | ครูไลลาขายบ้านและที่ดิน</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- ✅ Firebase (เฉพาะ App + Firestore เท่านั้น) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <!-- ✅ Firebase Config -->
+  <script>
+    window.firebaseConfig = {
+      apiKey: "AIzaSyAoMKMzM1-Ya6FF5M649IslWo_eNtQBSQg",
+      authDomain: "laila-18024.firebaseapp.com",
+      projectId: "laila-18024",
+      storageBucket: "", // ❌ ลบ Firebase Storage ออกแล้ว
+      messagingSenderId: "44350993909",
+      appId: "1:44350993909:web:49aa8e4e787da32f509cbc",
+    };
+
+    /* ✅ Google Apps Script Upload API (ฟรี) */
+    window.GAS_UPLOAD_URL = "https://script.google.com/macros/s/AKfycbzXfuh63UbJXwi7TZWXUQ6fHDYenDfiKqJx872lDH0Jba9QATiFNQJENwmsdbZqsG4Q/exec";
+    window.DRIVE_FOLDER_ID = "1PVMVr4mQ_4B68l5Ng9nsdydxGViINoab";
+  </script>
+
+  <script src="app.js" defer></script>
+</head>
+
+<body class="theme light">
+  <header class="topbar glass">
+    <div class="brand">ครูไลลาขายบ้านและที่ดิน — Admin</div>
+    <a class="admin-link btn btn-ghost" href="index.html">กลับหน้าเว็บ</a>
+  </header>
+
+  <main class="container">
+
+    <!-- 🔐 กล่องเข้าสู่ระบบ -->
+    <section id="loginBox" class="card glass">
+      <h3>เข้าสู่ระบบแอดมิน</h3>
+      <div class="row">
+        <label>รหัสผ่าน</label>
+        <input type="password" id="password" class="input" placeholder="admin123" />
+      </div>
+      <div class="row">
+        <button id="loginBtn" class="btn">เข้าสู่ระบบ</button>
+        <button id="resetBtn" class="btn btn-ghost">รีเซ็ตรหัสผ่าน</button>
+      </div>
+      <div class="muted small">
+        รหัสเริ่มต้น: <b>admin123</b>  
+        (ฝั่ง client — โปรดตั้งกติกา Security Rules ใน Firebase ด้วย)
+      </div>
+    </section>
+
+    <!-- 🧭 ส่วนจัดการหลังล็อกอิน -->
+    <section id="adminBox" class="card glass" style="display:none">
+      <h3>จัดการประกาศ (ซิงก์ผ่าน Firebase)</h3>
+      <div class="notice small">
+        ฟอร์มด้านล่างสำหรับ <b>เพิ่มใหม่</b> เท่านั้น — การ <b>แก้ไข</b> ทำในแต่ละรายการ
+      </div>
+
+      <!-- ฟอร์มเพิ่มประกาศใหม่ -->
+      <form id="listingForm" class="grid">
+        <div><label>หัวข้อ</label><input id="f_title" class="input" required /></div>
+        <div>
+          <label>ประเภท</label>
+          <select id="f_type" class="input"></select>
+        </div>
+        <div><label>ราคา (บาท)</label><input id="f_price" class="input" type="number" min="0" /></div>
+        <div>
+          <label>หน่วยราคา</label>
+          <select id="f_priceUnit" class="input">
+            <option>ราคาต่อห้อง</option><option>ราคาต่อหลัง</option><option>ราคาต่อแปลง</option>
+            <option>ราคาต่อไร่</option><option>ราคาต่อตารางวา</option><option>ราคายกแปลง</option>
+          </select>
+        </div>
+        <div class="full"><label>คำอธิบาย</label><textarea id="f_desc" class="input" rows="3"></textarea></div>
+        <div class="full"><label>ลิงก์โพสต์ Facebook</label><input id="f_fbUrl" class="input" placeholder="https://www.facebook.com/..." /></div>
+
+        <div class="full">
+          <label>ลิงก์ Google Maps</label>
+          <input id="f_gmap" class="input" placeholder="https://maps.google.com/..." />
+          <small class="muted">ระบบจะดึงพิกัดอัตโนมัติจากลิงก์</small>
+        </div>
+        <div><label>ละติจูด</label><input id="f_lat" class="input" /></div>
+        <div><label>ลองจิจูด</label><input id="f_lng" class="input" /></div>
+
+        <div class="full">
+          <label>อัปโหลดรูปภาพ (ได้หลายรูป)</label>
+          <input type="file" id="f_imgs" class="input" accept="image/*" multiple />
+          <div id="imgsPrev" class="preview-grid"></div>
+        </div>
+
+        <div class="full btn-row">
+          <button type="button" id="saveBtn" class="btn">บันทึก (เพิ่มใหม่)</button>
+          <button type="button" id="exportBtn" class="btn btn-ghost">ส่งออก JSON</button>
+          <input type="file" id="importFile" accept="application/json" style="display:none" />
+          <button type="button" id="importBtn" class="btn btn-ghost">นำเข้า JSON</button>
+        </div>
+      </form>
+
+      <!-- จัดการประเภท -->
+      <section class="card glass" style="margin-top:8px">
+        <h4>จัดการประเภท</h4>
+        <div class="row">
+          <input id="typeInput" class="input" placeholder="เช่น คอนโด / อาคารพาณิชย์" />
+          <button id="typeAddBtn" class="btn">เพิ่มประเภท</button>
+        </div>
+        <div id="typeChips" class="chip-list small" style="margin-top:8px;"></div>
+      </section>
+
+      <h4>รายการทั้งหมด</h4>
+      <div id="tableWrap" class="table-wrap glass"></div>
+      <div id="allMap" class="map-embed glass" style="height: 360px; margin-top:12px;"></div>
+    </section>
+
+    <!-- 🧱 Edit Modal -->
+    <div id="editModal" class="modal" style="display:none;">
+      <div class="modal-content glass">
+        <div class="modal-head">
+          <b>แก้ไขประกาศ</b>
+          <button id="closeEdit" class="btn-ghost">ปิด</button>
+        </div>
+        <div class="modal-body">
+          <form id="editForm" class="grid">
+            <input type="hidden" id="e_id" />
+            <div><label>หัวข้อ</label><input id="e_title" class="input" required /></div>
+            <div>
+              <label>ประเภท</label>
+              <select id="e_type" class="input"></select>
+            </div>
+            <div><label>ราคา (บาท)</label><input id="e_price" class="input" type="number" min="0" /></div>
+            <div>
+              <label>หน่วยราคา</label>
+              <select id="e_priceUnit" class="input">
+                <option>ราคาต่อห้อง</option><option>ราคาต่อหลัง</option><option>ราคาต่อแปลง</option>
+                <option>ราคาต่อไร่</option><option>ราคาต่อตารางวา</option><option>ราคายกแปลง</option>
+              </select>
+            </div>
+            <div class="full"><label>คำอธิบาย</label><textarea id="e_desc" class="input" rows="3"></textarea></div>
+            <div class="full"><label>ลิงก์โพสต์ Facebook</label><input id="e_fbUrl" class="input" placeholder="https://www.facebook.com/..." /></div>
+
+            <div class="full">
+              <label>ลิงก์ Google Maps</label>
+              <input id="e_gmap" class="input" placeholder="https://maps.google.com/..." />
+              <small class="muted">ระบบจะดึงพิกัดอัตโนมัติจากลิงก์</small>
+            </div>
+            <div><label>ละติจูด</label><input id="e_lat" class="input" /></div>
+            <div><label>ลองจิจูด</label><input id="e_lng" class="input" /></div>
+
+            <!-- แสดงรูปที่มีอยู่ -->
+            <div class="full">
+              <label>รูปที่ใช้อยู่</label>
+              <div id="e_imgsList" class="preview-grid"></div>
+              <small class="small">คลิก “ลบรูป” เพื่อลบไฟล์ออกจาก Google Drive และประกาศนี้</small>
+            </div>
+
+            <!-- อัปโหลดเพิ่ม -->
+            <div class="full">
+              <label>อัปโหลดรูปเพิ่ม (ได้หลายรูป)</label>
+              <input type="file" id="e_imgs" class="input" accept="image/*" multiple />
+              <div id="e_imgsPrev" class="preview-grid"></div>
+            </div>
+
+            <div class="full btn-row">
+              <button type="button" id="e_updateBtn" class="btn">อัปเดต</button>
+              <button type="button" id="e_deleteBtn" class="btn-ghost">ลบประกาศนี้</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="footer muted small">
+    © <span id="year"></span> ครูไลลาขายบ้านและที่ดิน — Admin
+  </footer>
+</body>
+</html>
