@@ -2,22 +2,92 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <title>ครูไลลาขายบ้านและที่ดิน</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ครูไลลาขายบ้านและที่ดิน — รวมประกาศบ้าน ที่ดิน คอนโด</title>
 
-  <!-- Leaflet -->
+  <!-- SEO -->
+  <meta name="description" content="รวมประกาศขายบ้าน ที่ดิน คอนโด อาคารพาณิชย์ พร้อมแผนที่และรูปภาพจริง โดยครูไลลา ติดต่อโดยตรง ไม่ผ่านนายหน้าซ้ำซ้อน" />
+  <meta name="theme-color" content="#2563eb" />
+  <link rel="canonical" href="" id="canonicalLink" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="ครูไลลาขายบ้านและที่ดิน" />
+  <meta property="og:description" content="รวมประกาศขายบ้าน ที่ดิน คอนโด พร้อมแผนที่และรูปภาพจริง" />
+  <meta property="og:image" content="" id="ogImage" />
+  <meta property="og:locale" content="th_TH" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="ครูไลลาขายบ้านและที่ดิน" />
+  <meta name="twitter:description" content="รวมประกาศขายบ้าน ที่ดิน คอนโด พร้อมแผนที่" />
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "RealEstateAgent",
+    "name": "ครูไลลาขายบ้านและที่ดิน",
+    "areaServed": "TH",
+    "knowsLanguage": "th"
+  }
+  </script>
+
+  <!-- Analytics (GA4) — ใส่ Measurement ID ใน GA4_ID (เช่น 'G-ABCD1234'); เว้นว่าง = ปิด
+       PDPA: ไม่โหลด GA4 จนกว่าผู้ใช้กดยอมรับใน consent banner; ที่บันทึกใน localStorage
+       ถ้าจะใช้ Plausible (cookieless ไม่ต้องขอ consent): ลบบล็อกนี้ แล้วใส่
+       <script defer data-domain="yourdomain.com" src="https://plausible.io/js/script.js"></script> -->
+  <script>window.GA4_ID = '';</script>
+  <script>
+    (function(){
+      const CKEY = 'krulaila:consent:analytics';
+      window.__loadGA4 = function(){
+        if (!window.GA4_ID || window.__ga4Loaded) return;
+        window.__ga4Loaded = true;
+        var s = document.createElement('script'); s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=' + window.GA4_ID;
+        document.head.appendChild(s);
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function(){ dataLayer.push(arguments); };
+        gtag('js', new Date());
+        gtag('config', window.GA4_ID, { anonymize_ip:true });
+      };
+      window.__showConsent = function(){
+        const b = document.getElementById('consentBanner'); if (b) b.hidden = false;
+      };
+      window.__setConsent = function(v){
+        try { localStorage.setItem(CKEY, v); } catch {}
+        const b = document.getElementById('consentBanner'); if (b) b.hidden = true;
+        if (v === 'accept') window.__loadGA4();
+      };
+      if (!window.GA4_ID) return;
+      let v = null; try { v = localStorage.getItem(CKEY); } catch {}
+      if (v === 'accept') window.__loadGA4();
+      else if (v !== 'reject') document.addEventListener('DOMContentLoaded', window.__showConsent);
+      // ถ้า reject ไม่ทำอะไร — ผู้ใช้กดปุ่ม "🍪 ตั้งค่า cookie" ในฟุตเตอร์เพื่อเปลี่ยนใจได้
+    })();
+  </script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- Leaflet + MarkerCluster -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" defer></script>
 
   <!-- Styles -->
   <link rel="stylesheet" href="styles.css" />
 
-  <!-- Firebase (Compat CDN for simplicity) -->
+  <!-- Firebase (Compat — ไม่ต้อง build) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
-  <!-- ใส่ config ของโปรเจ็กต์คุณตรงนี้ -->
+  <!-- ⚠️ ใส่ค่า config ของโปรเจกต์ Firebase ของคุณ -->
   <script>
     window.firebaseConfig = {
       apiKey: "AIzaSyAoMKMzM1-Ya6FF5M649IslWo_eNtQBSQg",
@@ -25,73 +95,162 @@
       projectId: "laila-18024",
       storageBucket: "laila-18024.firebasestorage.app",
       messagingSenderId: "44350993909",
-      appId: "1:44350993909:web:49aa8e4e787da32f509cbc",
+      appId: "1:44350993909:web:49aa8e4e787da32f509cbc"
     };
   </script>
 
-  <!-- App -->
   <script src="app.js" defer></script>
 </head>
 <body class="theme light">
-  <header class="topbar glass">
-    <div class="brand">ครูไลลาขายบ้านและที่ดิน</div>
-    <a class="admin-link btn btn-ghost" href="admin.html">FACEBOOK</a>
+  <header class="topbar glass" role="banner">
+    <a href="#/" class="brand" aria-label="ครูไลลาขายบ้านและที่ดิน">
+      <span class="brand-mark" aria-hidden="true">🏡</span>
+      <span class="brand-text">ครูไลลา<span class="brand-sub">ขายบ้านและที่ดิน</span></span>
+    </a>
+    <nav class="top-actions" aria-label="เมนูหลัก">
+      <a id="navFacebook" class="btn btn-ghost" href="#" target="_blank" rel="noopener" hidden>
+        <span aria-hidden="true">📘</span> Facebook
+      </a>
+    </nav>
   </header>
 
-  <main class="container">
-    <section class="filters card glass">
-      <div class="row">
-        <label>ประเภท</label>
-        <select id="fltType" class="input">
-          <option value="">ทั้งหมด</option>
-          <!-- จะถูกเติมจาก JS -->
-        </select>
-      </div>
-      <div class="row">
-        <label>ช่วงราคา (บาท)</label>
-        <input type="number" id="fltMin" class="input" placeholder="ต่ำสุด" />
-        <input type="number" id="fltMax" class="input" placeholder="สูงสุด" />
+  <main class="container" id="main">
+
+    <!-- ฟิลเตอร์ -->
+    <section class="filters card glass" aria-label="ตัวกรอง">
+      <div class="filter-grid">
+        <div class="field">
+          <label for="fltSearch">ค้นหา</label>
+          <input id="fltSearch" class="input" type="search" placeholder="คำในชื่อหรือคำอธิบาย…" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="fltType">ประเภท</label>
+          <select id="fltType" class="input">
+            <option value="">ทั้งหมด</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="fltMode">การประกาศ</label>
+          <select id="fltMode" class="input">
+            <option value="">ทั้งหมด</option>
+            <option value="sale">ขาย</option>
+            <option value="rent">เช่า</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="fltStatus">สถานะ</label>
+          <select id="fltStatus" class="input">
+            <option value="">ทั้งหมด</option>
+            <option value="available">เปิดขาย</option>
+            <option value="reserved">จองแล้ว</option>
+            <option value="sold">ขายแล้ว</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="fltMin">ราคาต่ำสุด</label>
+          <input id="fltMin" class="input" type="number" min="0" placeholder="0" inputmode="numeric" />
+        </div>
+        <div class="field">
+          <label for="fltMax">ราคาสูงสุด</label>
+          <input id="fltMax" class="input" type="number" min="0" placeholder="ไม่จำกัด" inputmode="numeric" />
+        </div>
+        <div class="field">
+          <label for="fltSort">เรียงตาม</label>
+          <select id="fltSort" class="input">
+            <option value="new">ใหม่สุด</option>
+            <option value="priceAsc">ราคาต่ำ → สูง</option>
+            <option value="priceDesc">ราคาสูง → ต่ำ</option>
+          </select>
+        </div>
       </div>
 
-      <!-- ค้นหาที่อยู่ด้วย Nominatim -->
-      <div class="row">
-        <label>ค้นหาที่อยู่</label>
-        <input id="addrQuery" class="input" placeholder="เช่น สยามพารากอน กรุงเทพ" />
-        <button id="addrSearch" class="btn">ค้นหาแผนที่</button>
-      </div>
-      <div id="addrResults" class="addr-results small"></div>
-
-      <div class="row">
-        <button id="applyFilter" class="btn">ค้นหา</button>
-        <button id="clearFilter" class="btn btn-ghost">ล้าง</button>
+      <div class="filter-row">
+        <div class="field grow">
+          <label for="addrQuery">ค้นหาประกาศ (เลื่อนแผนที่ไป)</label>
+          <div class="row">
+            <input id="addrQuery" class="input" placeholder="พิมพ์ชื่อ/ทำเลของประกาศ เช่น บ้านเดี่ยว รังสิต" />
+            <button id="addrSearch" class="btn">ค้นหา</button>
+          </div>
+          <div id="addrResults" class="addr-results small" role="listbox"></div>
+        </div>
+        <div class="btn-row">
+          <button id="applyFilter" class="btn">ใช้ตัวกรอง</button>
+          <button id="clearFilter" class="btn btn-ghost">ล้าง</button>
+          <button id="favToggle" class="btn btn-ghost" type="button" aria-pressed="false">❤️ รายการโปรด (<span id="favCount">0</span>)</button>
+        </div>
       </div>
     </section>
 
-    <!-- ซ้าย: แผนที่ • ขวา: แผงรายละเอียด + รายการ -->
-    <section class="map-list">
-      <div id="map" class="glass"></div>
+    <!-- แผนที่ + รายการ -->
+    <section class="map-list" aria-label="ผลการค้นหา">
+      <div id="map" class="glass" role="region" aria-label="แผนที่ประกาศ"></div>
 
       <aside class="list-col">
-        <!-- แผงรายละเอียด (overlay) -->
-        <div id="detailPanel" class="detail-panel glass" style="display:none"></div>
-
-        <!-- รายการ -->
-        <aside id="listings"></aside>
+        <div id="detailPanel" class="detail-panel glass" hidden aria-live="polite"></div>
+        <div id="listings" aria-live="polite">
+          <div class="skeleton-list" id="skelList">
+            <div class="skel-card"></div>
+            <div class="skel-card"></div>
+            <div class="skel-card"></div>
+          </div>
+        </div>
+        <div id="loadMoreWrap" class="load-more-wrap" hidden>
+          <button id="loadMoreBtn" class="btn btn-ghost">โหลดเพิ่ม</button>
+        </div>
       </aside>
     </section>
   </main>
 
   <footer class="footer muted small">
-    © <span id="year"></span> ครูไลลาขายบ้านและที่ดิน
+    <div class="container">
+      <div>© <span id="year"></span> ครูไลลาขายบ้านและที่ดิน</div>
+      <div id="footerContact" class="footer-contact"></div>
+      <div><button type="button" class="btn btn-ghost small" onclick="try{localStorage.removeItem('krulaila:consent:analytics')}catch(e){};window.__showConsent&&window.__showConsent()">🍪 ตั้งค่า cookie</button></div>
+    </div>
   </footer>
 
-  <!-- Lightbox สำหรับดูภาพเต็ม -->
-  <div id="lightbox"
-      style="position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;
-             align-items:center;justify-content:center;z-index:9999;">
-    <img id="lightboxImg" src=""
-         style="max-width:95vw;max-height:95vh;object-fit:contain;
-                border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.6)">
+  <!-- Cookie consent (PDPA) — โหลด GA4 หลังกดยอมรับเท่านั้น -->
+  <div id="consentBanner" class="consent-banner" hidden role="dialog" aria-label="ขอความยินยอมใช้ cookie">
+    <div class="consent-text">
+      เว็บนี้ใช้ <b>Google Analytics</b> เพื่อวัดยอดเข้าชม (ไม่ระบุตัวบุคคล)<br>
+      ตาม พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล (PDPA) — คุณยินยอมให้เก็บข้อมูลการใช้งานหรือไม่?
+    </div>
+    <div class="consent-actions">
+      <button type="button" class="btn" onclick="window.__setConsent('accept')">ยอมรับ</button>
+      <button type="button" class="btn btn-ghost" onclick="window.__setConsent('reject')">ปฏิเสธ</button>
+    </div>
   </div>
+
+  <!-- Lightbox -->
+  <div id="lightbox" class="lightbox" hidden aria-modal="true" role="dialog" aria-label="ภาพขยาย">
+    <button class="lb-btn lb-close" id="lbClose" aria-label="ปิด">✕</button>
+    <button class="lb-btn lb-prev" id="lbPrev" aria-label="รูปก่อนหน้า">‹</button>
+    <img id="lightboxImg" alt="" />
+    <button class="lb-btn lb-next" id="lbNext" aria-label="รูปถัดไป">›</button>
+    <div class="lb-counter" id="lbCounter"></div>
+  </div>
+
+  <!-- Mortgage Modal -->
+  <div id="loanModal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="loanTitle">
+    <div class="modal-content glass">
+      <div class="modal-head">
+        <b id="loanTitle">คำนวณค่างวด</b>
+        <button id="loanClose" class="btn btn-ghost" aria-label="ปิด">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="grid">
+          <div class="field"><label>ราคาบ้าน (บาท)</label><input id="loanPrice" class="input" type="number" min="0" /></div>
+          <div class="field"><label>เงินดาวน์ (%)</label><input id="loanDown" class="input" type="number" min="0" max="100" value="20" /></div>
+          <div class="field"><label>ดอกเบี้ย (% ต่อปี)</label><input id="loanRate" class="input" type="number" min="0" step="0.01" value="6.5" /></div>
+          <div class="field"><label>ระยะเวลา (ปี)</label><input id="loanYears" class="input" type="number" min="1" max="40" value="30" /></div>
+        </div>
+        <div class="loan-result" id="loanResult"></div>
+        <div class="small muted">* ผลลัพธ์เป็นการประมาณการเท่านั้น ดอกเบี้ยและเงื่อนไขจริงขึ้นกับธนาคาร</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toastWrap" class="toast-wrap" role="status" aria-live="polite"></div>
 </body>
 </html>
