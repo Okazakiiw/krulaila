@@ -2,173 +2,355 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <title>Admin | ครูไลลาขายบ้านและที่ดิน</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin | ครูไลลาขายบ้านและที่ดิน</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <meta name="theme-color" content="#2563eb" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+
   <link rel="stylesheet" href="styles.css" />
 
-  <!-- ✅ Firebase (เฉพาะ App + Firestore เท่านั้น) -->
+  <!-- Firebase: App + Auth + Firestore -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
-  <!-- ✅ Firebase Config -->
   <script>
     window.firebaseConfig = {
       apiKey: "AIzaSyAoMKMzM1-Ya6FF5M649IslWo_eNtQBSQg",
       authDomain: "laila-18024.firebaseapp.com",
       projectId: "laila-18024",
-      storageBucket: "", // ❌ ลบ Firebase Storage ออกแล้ว
+      storageBucket: "laila-18024.firebasestorage.app",
       messagingSenderId: "44350993909",
-      appId: "1:44350993909:web:49aa8e4e787da32f509cbc",
+      appId: "1:44350993909:web:49aa8e4e787da32f509cbc"
     };
 
-    /* ✅ Google Apps Script Upload API (ฟรี) */
-    window.GAS_UPLOAD_URL = "https://script.google.com/macros/s/AKfycbzXfuh63UbJXwi7TZWXUQ6fHDYenDfiKqJx872lDH0Jba9QATiFNQJENwmsdbZqsG4Q/exec";
-    window.DRIVE_FOLDER_ID = "1PVMVr4mQ_4B68l5Ng9nsdydxGViINoab";
+    /* ✅ Google Apps Script Upload API */
+    window.GAS_UPLOAD_URL = "https://script.google.com/macros/s/AKfycbxU9ieWutIRsQi0CJF4wVrHlPxVt09XNdohFwJaq2AcEaUrQoEvMCjDSZ2oU2nGSrfu/exec";
+
+    /* ⚠️ ตั้งค่าให้ตรงกับ Apps Script ของคุณ (ดูคู่มือใน README + gas-upload.gs)
+       ค่านี้ต้องเป็น "ความลับ" แต่เนื่องจากเป็น static site จึงเปิดเผยฝั่ง client ได้
+       Apps Script ตัวใหม่จะตรวจ Firebase ID Token ของ user ที่ login เป็นชั้นป้องกันจริง */
+    window.GAS_SHARED_TOKEN = "CHANGE_ME_LONG_RANDOM_STRING";
   </script>
 
   <script src="app.js" defer></script>
 </head>
-
 <body class="theme light">
   <header class="topbar glass">
-    <div class="brand">ครูไลลาขายบ้านและที่ดิน — Admin</div>
-    <a class="admin-link btn btn-ghost" href="index.html">กลับหน้าเว็บ</a>
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">🔐</span>
+      <span class="brand-text">ครูไลลา<span class="brand-sub">Admin</span></span>
+    </div>
+    <nav class="top-actions">
+      <span id="whoAmI" class="small muted" hidden></span>
+      <a class="btn btn-ghost" href="index.html">← กลับหน้าเว็บ</a>
+      <button id="logoutBtn" class="btn btn-ghost" hidden>ออกจากระบบ</button>
+    </nav>
   </header>
 
   <main class="container">
 
-    <!-- 🔐 กล่องเข้าสู่ระบบ -->
-    <section id="loginBox" class="card glass">
+    <!-- 🔐 Login (Firebase Auth) -->
+    <section id="loginBox" class="card glass" style="max-width:480px;margin:24px auto;">
       <h3>เข้าสู่ระบบแอดมิน</h3>
-      <div class="row">
-        <label>รหัสผ่าน</label>
-        <input type="password" id="password" class="input" placeholder="admin123" />
-      </div>
-      <div class="row">
+      <div class="field"><label for="loginEmail">อีเมล</label><input id="loginEmail" class="input" type="email" autocomplete="username" placeholder="admin@example.com" /></div>
+      <div class="field"><label for="loginPass">รหัสผ่าน</label><input id="loginPass" class="input" type="password" autocomplete="current-password" placeholder="••••••••" /></div>
+      <div class="btn-row">
         <button id="loginBtn" class="btn">เข้าสู่ระบบ</button>
-        <button id="resetBtn" class="btn btn-ghost">รีเซ็ตรหัสผ่าน</button>
+        <button id="forgotBtn" class="btn btn-ghost">ลืมรหัสผ่าน</button>
       </div>
-      <div class="muted small">
-        รหัสเริ่มต้น: <b>admin123</b>  
-        (ฝั่ง client — โปรดตั้งกติกา Security Rules ใน Firebase ด้วย)
-      </div>
+      <p class="small muted" style="margin-top:10px">
+        ต้องสร้างบัญชีแอดมินใน Firebase Console → Authentication → Users ก่อนใช้งาน<br>
+        และต้องตั้ง Firestore Rules ให้เขียนได้เฉพาะ <code>request.auth != null</code>
+      </p>
     </section>
 
-    <!-- 🧭 ส่วนจัดการหลังล็อกอิน -->
-    <section id="adminBox" class="card glass" style="display:none">
-      <h3>จัดการประกาศ (ซิงก์ผ่าน Firebase)</h3>
-      <div class="notice small">
-        ฟอร์มด้านล่างสำหรับ <b>เพิ่มใหม่</b> เท่านั้น — การ <b>แก้ไข</b> ทำในแต่ละรายการ
-      </div>
+    <!-- ส่วนหลังล็อกอิน -->
+    <section id="adminBox" hidden>
 
-      <!-- ฟอร์มเพิ่มประกาศใหม่ -->
-      <form id="listingForm" class="grid">
-        <div><label>หัวข้อ</label><input id="f_title" class="input" required /></div>
-        <div>
-          <label>ประเภท</label>
-          <select id="f_type" class="input"></select>
+      <!-- การตั้งค่าทั่วเว็บ -->
+      <section class="card glass">
+        <h3>การตั้งค่าทั่วเว็บ</h3>
+        <div class="grid">
+          <div class="field"><label>เบอร์โทร</label><input id="s_phone" class="input" placeholder="0812345678" /></div>
+          <div class="field"><label>LINE ID</label><input id="s_lineId" class="input" placeholder="@krulaila" /></div>
+          <div class="field full"><label>LINE Add Link</label><input id="s_lineUrl" class="input" placeholder="https://line.me/ti/p/~..." /></div>
+          <div class="field full"><label>Facebook Page หลัก</label><input id="s_facebookPage" class="input" placeholder="https://www.facebook.com/your-page" /></div>
+          <div class="field full"><label>Messenger Link</label><input id="s_messengerUrl" class="input" placeholder="https://m.me/your-page" /></div>
+          <div class="field full"><label>ข้อความ "เกี่ยวกับเรา" (สั้น ๆ)</label><textarea id="s_about" class="input" rows="2"></textarea></div>
+          <div class="field">
+            <label>ปักหมุดอัตโนมัติ (วัน)</label>
+            <input id="s_pinDefaultDays" class="input" type="number" min="0" placeholder="14" />
+            <small class="muted">เมื่อปักหมุดประกาศ จะหมดเวลาเองหลังกี่วัน · ใส่ 0 = ไม่จำกัด</small>
+          </div>
         </div>
-        <div><label>ราคา (บาท)</label><input id="f_price" class="input" type="number" min="0" /></div>
-        <div>
-          <label>หน่วยราคา</label>
-          <select id="f_priceUnit" class="input">
-            <option>ราคาต่อห้อง</option><option>ราคาต่อหลัง</option><option>ราคาต่อแปลง</option>
-            <option>ราคาต่อไร่</option><option>ราคาต่อตารางวา</option><option>ราคายกแปลง</option>
-          </select>
-        </div>
-        <div class="full"><label>คำอธิบาย</label><textarea id="f_desc" class="input" rows="3"></textarea></div>
-        <div class="full"><label>ลิงก์โพสต์ Facebook</label><input id="f_fbUrl" class="input" placeholder="https://www.facebook.com/..." /></div>
+        <div class="btn-row"><button id="saveSiteBtn" class="btn">บันทึกการตั้งค่า</button></div>
+      </section>
 
-        <div class="full">
-          <label>ลิงก์ Google Maps</label>
-          <input id="f_gmap" class="input" placeholder="https://maps.google.com/..." />
-          <small class="muted">ระบบจะดึงพิกัดอัตโนมัติจากลิงก์</small>
-        </div>
-        <div><label>ละติจูด</label><input id="f_lat" class="input" /></div>
-        <div><label>ลองจิจูด</label><input id="f_lng" class="input" /></div>
+      <!-- 🆕 Facebook integration (ใช้วิธี parse og:image — ไม่ต้องใช้ Token) -->
+      <section class="card glass">
+        <h3>📘 นำเข้ารูปจาก Facebook</h3>
+        <p class="small muted" style="margin:6px 0 0;">
+          ใช้ในฟอร์มเพิ่ม/แก้ประกาศ — วาง URL โพสต์/แชร์ของ Facebook ลงในช่อง "ดึงจากโพสต์ FB"<br>
+          ✅ รองรับ URL แบบ <code>facebook.com/share/p/XXX/</code>, <code>facebook.com/{page}/posts/...</code>, <code>facebook.com/photo/?fbid=...</code><br>
+          ✅ ไม่ต้องตั้งค่า ไม่ต้องใช้ Token — ระบบจะดึงรูปและ caption จาก meta tag ของหน้านั้นโดยตรง<br>
+          ⚠️ ใช้ได้เฉพาะโพสต์ที่เปิดเป็น <b>สาธารณะ (Public)</b> เท่านั้น
+        </p>
+      </section>
 
-        <div class="full">
-          <label>อัปโหลดรูปภาพ (ได้หลายรูป)</label>
-          <input type="file" id="f_imgs" class="input" accept="image/*" multiple />
-          <div id="imgsPrev" class="preview-grid"></div>
-        </div>
+      <!-- ฟอร์มเพิ่มประกาศ -->
+      <section class="card glass">
+        <h3>เพิ่มประกาศใหม่</h3>
+        <form id="listingForm" class="grid" onsubmit="return false;">
+          <div class="field"><label>หัวข้อ *</label><input id="f_title" class="input" required maxlength="120" /></div>
+          <div class="field"><label>ประเภท</label><select id="f_type" class="input"></select></div>
+          <div class="field">
+            <label>การประกาศ</label>
+            <select id="f_listingMode" class="input">
+              <option value="sale">ขาย</option>
+              <option value="rent">เช่า</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>สถานะ</label>
+            <select id="f_status" class="input">
+              <option value="available">เปิดขาย</option>
+              <option value="reserved">จองแล้ว</option>
+              <option value="sold">ขายแล้ว</option>
+              <option value="draft">ฉบับร่าง (ซ่อนจากเว็บ)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>ปักหมุด</label>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:400;height:38px;">
+              <input type="checkbox" id="f_pinned" /> 📌 แสดงบนสุด
+            </label>
+          </div>
+          <div class="field"><label>ราคา (บาท)</label><input id="f_price" class="input" type="number" min="0" /></div>
+          <div class="field">
+            <label>หน่วยราคา</label>
+            <select id="f_priceUnit" class="input">
+              <option value="">— ไม่ระบุ —</option>
+              <option>ราคาต่อห้อง</option>
+              <option>ราคาต่อหลัง</option>
+              <option>ราคาต่อแปลง</option>
+              <option>ราคาต่อไร่</option>
+              <option>ราคาต่อตารางวา</option>
+              <option>ราคายกแปลง</option>
+              <option>ราคาต่อเดือน</option>
+            </select>
+          </div>
 
-        <div class="full btn-row">
-          <button type="button" id="saveBtn" class="btn">บันทึก (เพิ่มใหม่)</button>
-          <button type="button" id="exportBtn" class="btn btn-ghost">ส่งออก JSON</button>
-          <input type="file" id="importFile" accept="application/json" style="display:none" />
-          <button type="button" id="importBtn" class="btn btn-ghost">นำเข้า JSON</button>
-        </div>
-      </form>
+          <div class="field"><label>ห้องนอน</label><input id="f_bedrooms" class="input" type="number" min="0" /></div>
+          <div class="field"><label>ห้องน้ำ</label><input id="f_bathrooms" class="input" type="number" min="0" /></div>
+          <div class="field"><label>พื้นที่ใช้สอย (ตร.ม.)</label><input id="f_usableArea" class="input" type="number" min="0" step="0.01" /></div>
+          <div class="field"><label>ขนาดที่ดิน (ตร.วา)</label><input id="f_landSize" class="input" type="number" min="0" step="0.01" /></div>
+          <div class="field"><label>ที่จอดรถ</label><input id="f_parking" class="input" type="number" min="0" /></div>
+
+          <div class="field full"><label>คำอธิบาย</label><textarea id="f_desc" class="input" rows="3" maxlength="4000"></textarea></div>
+          <div class="field full"><label>ลิงก์โพสต์ Facebook</label><input id="f_fbUrl" class="input" type="url" placeholder="https://www.facebook.com/..." /></div>
+
+          <div class="field full">
+            <label>ลิงก์ Google Maps</label>
+            <input id="f_gmap" class="input" placeholder="https://maps.google.com/..." />
+            <small class="muted">วางลิงก์ Google Maps → ระบบจะดึงพิกัดอัตโนมัติ</small>
+          </div>
+          <div class="field"><label>ละติจูด</label><input id="f_lat" class="input" type="number" step="0.000001" /></div>
+          <div class="field"><label>ลองจิจูด</label><input id="f_lng" class="input" type="number" step="0.000001" /></div>
+
+          <div class="field full" style="border:1px dashed var(--line,#cbd5e1);border-radius:10px;padding:10px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+              <input type="checkbox" id="f_approxLoc" /> ระบุตำแหน่งแบบไม่ชัด (แสดงเป็นรัศมีบนแผนที่)
+            </label>
+            <div class="row" style="margin-top:8px;align-items:center;gap:8px;flex-wrap:wrap;">
+              <select id="f_approxRadius" class="input" style="max-width:160px;">
+                <option value="200">รัศมี 200 ม.</option>
+                <option value="300" selected>รัศมี 300 ม.</option>
+                <option value="500">รัศมี 500 ม.</option>
+                <option value="1000">รัศมี 1 กม.</option>
+              </select>
+              <button type="button" id="f_approxBtn" class="btn btn-secondary">🎲 สุ่มจุดในรัศมี</button>
+            </div>
+            <div id="f_approxOut" class="small" style="margin-top:6px;color:#2563eb;"></div>
+            <small class="muted">พิกัดจริง (ละติจูด/ลองจิจูด) จะถูกเก็บไว้ไม่เปลี่ยน — ปุ่มนี้สร้าง "จุดแสดงผล" สุ่มในรัศมี ให้หน้าเว็บโชว์เป็นวงกลมแทนหมุดจริง</small>
+          </div>
+
+          <div class="field full">
+            <label>อัปโหลดรูปภาพ (สูงสุด 12 รูป)</label>
+            <input type="file" id="f_imgs" class="input" accept="image/*" multiple />
+            <div id="imgsPrev" class="preview-grid"></div>
+          </div>
+
+          <div class="field full import-box">
+            <label>🚀 นำเข้ารูปจาก URL / Facebook (ไม่ต้องเซฟไฟล์)</label>
+            <div class="import-controls">
+              <textarea id="f_importUrls" class="input" rows="2" placeholder="วาง URL รูป 1 บรรทัด/อัน (รองรับ Facebook CDN, Instagram, อื่น ๆ)"></textarea>
+              <button type="button" id="f_importUrlsBtn" class="btn btn-secondary">📥 นำเข้าจาก URL</button>
+            </div>
+            <div class="import-controls">
+              <input id="f_importPostUrl" class="input" placeholder="หรือวาง URL โพสต์ Facebook เช่น https://www.facebook.com/share/p/XXX/" />
+              <button type="button" id="f_importPostBtn" class="btn btn-secondary">📰 ดึงจากโพสต์ FB</button>
+            </div>
+            <div id="f_importedPrev" class="preview-grid"></div>
+            <small class="muted">รูปที่นำเข้าจะถูก re-host ใน Google Drive ของคุณทันที (ไม่ผูกกับ Facebook CDN ที่อาจหมดอายุ) · รองรับเฉพาะโพสต์สาธารณะ</small>
+          </div>
+
+          <div class="full btn-row">
+            <button type="button" id="saveBtn" class="btn">บันทึก (เพิ่มใหม่)</button>
+            <button type="button" id="exportBtn" class="btn btn-ghost">ส่งออก JSON</button>
+            <input type="file" id="importFile" accept="application/json" hidden />
+            <button type="button" id="importBtn" class="btn btn-ghost">นำเข้า JSON</button>
+          </div>
+        </form>
+      </section>
 
       <!-- จัดการประเภท -->
-      <section class="card glass" style="margin-top:8px">
+      <section class="card glass">
         <h4>จัดการประเภท</h4>
         <div class="row">
           <input id="typeInput" class="input" placeholder="เช่น คอนโด / อาคารพาณิชย์" />
           <button id="typeAddBtn" class="btn">เพิ่มประเภท</button>
         </div>
-        <div id="typeChips" class="chip-list small" style="margin-top:8px;"></div>
+        <div id="typeChips" class="chip-list" style="margin-top:8px;"></div>
       </section>
 
-      <h4>รายการทั้งหมด</h4>
-      <div id="tableWrap" class="table-wrap glass"></div>
-      <div id="allMap" class="map-embed glass" style="height: 360px; margin-top:12px;"></div>
+      <!-- ตารางรายการ + แผนที่ -->
+      <section class="card glass">
+        <h4>รายการทั้งหมด</h4>
+        <div id="adminStats" class="admin-stats"></div>
+        <div class="row" style="gap:8px;flex-wrap:wrap;margin:10px 0;">
+          <input id="adminSearch" class="input" type="search" placeholder="ค้นหาหัวข้อ/ประเภท/รายละเอียด…" style="flex:1;min-width:180px;" />
+          <select id="adminSort" class="input" style="max-width:200px;">
+            <option value="new">ใหม่สุด</option>
+            <option value="viewsDesc">ยอดดู มาก→น้อย</option>
+            <option value="priceDesc">ราคา สูง→ต่ำ</option>
+            <option value="priceAsc">ราคา ต่ำ→สูง</option>
+          </select>
+        </div>
+        <div id="tableWrap" class="table-wrap"></div>
+        <div id="allMap" class="map-embed" style="height:360px;margin-top:12px;border-radius:14px;"></div>
+      </section>
+
     </section>
 
-    <!-- 🧱 Edit Modal -->
-    <div id="editModal" class="modal" style="display:none;">
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal" hidden role="dialog" aria-modal="true">
       <div class="modal-content glass">
         <div class="modal-head">
           <b>แก้ไขประกาศ</b>
-          <button id="closeEdit" class="btn-ghost">ปิด</button>
+          <button id="closeEdit" class="btn btn-ghost" aria-label="ปิด">✕</button>
         </div>
         <div class="modal-body">
-          <form id="editForm" class="grid">
+          <form id="editForm" class="grid" onsubmit="return false;">
             <input type="hidden" id="e_id" />
-            <div><label>หัวข้อ</label><input id="e_title" class="input" required /></div>
-            <div>
-              <label>ประเภท</label>
-              <select id="e_type" class="input"></select>
-            </div>
-            <div><label>ราคา (บาท)</label><input id="e_price" class="input" type="number" min="0" /></div>
-            <div>
-              <label>หน่วยราคา</label>
-              <select id="e_priceUnit" class="input">
-                <option>ราคาต่อห้อง</option><option>ราคาต่อหลัง</option><option>ราคาต่อแปลง</option>
-                <option>ราคาต่อไร่</option><option>ราคาต่อตารางวา</option><option>ราคายกแปลง</option>
+            <div class="field"><label>หัวข้อ *</label><input id="e_title" class="input" required maxlength="120" /></div>
+            <div class="field"><label>ประเภท</label><select id="e_type" class="input"></select></div>
+            <div class="field">
+              <label>การประกาศ</label>
+              <select id="e_listingMode" class="input">
+                <option value="sale">ขาย</option>
+                <option value="rent">เช่า</option>
               </select>
             </div>
-            <div class="full"><label>คำอธิบาย</label><textarea id="e_desc" class="input" rows="3"></textarea></div>
-            <div class="full"><label>ลิงก์โพสต์ Facebook</label><input id="e_fbUrl" class="input" placeholder="https://www.facebook.com/..." /></div>
+            <div class="field">
+              <label>สถานะ</label>
+              <select id="e_status" class="input">
+                <option value="available">เปิดขาย</option>
+                <option value="reserved">จองแล้ว</option>
+                <option value="sold">ขายแล้ว</option>
+                <option value="draft">ฉบับร่าง (ซ่อนจากเว็บ)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>ปักหมุด</label>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:400;height:38px;">
+                <input type="checkbox" id="e_pinned" /> 📌 แสดงบนสุด
+              </label>
+            </div>
+            <div class="field"><label>ราคา (บาท)</label><input id="e_price" class="input" type="number" min="0" /></div>
+            <div class="field">
+              <label>หน่วยราคา</label>
+              <select id="e_priceUnit" class="input">
+                <option value="">— ไม่ระบุ —</option>
+                <option>ราคาต่อห้อง</option>
+                <option>ราคาต่อหลัง</option>
+                <option>ราคาต่อแปลง</option>
+                <option>ราคาต่อไร่</option>
+                <option>ราคาต่อตารางวา</option>
+                <option>ราคายกแปลง</option>
+                <option>ราคาต่อเดือน</option>
+              </select>
+            </div>
 
-            <div class="full">
+            <div class="field"><label>ห้องนอน</label><input id="e_bedrooms" class="input" type="number" min="0" /></div>
+            <div class="field"><label>ห้องน้ำ</label><input id="e_bathrooms" class="input" type="number" min="0" /></div>
+            <div class="field"><label>พื้นที่ใช้สอย (ตร.ม.)</label><input id="e_usableArea" class="input" type="number" min="0" step="0.01" /></div>
+            <div class="field"><label>ขนาดที่ดิน (ตร.วา)</label><input id="e_landSize" class="input" type="number" min="0" step="0.01" /></div>
+            <div class="field"><label>ที่จอดรถ</label><input id="e_parking" class="input" type="number" min="0" /></div>
+
+            <div class="field full"><label>คำอธิบาย</label><textarea id="e_desc" class="input" rows="3" maxlength="4000"></textarea></div>
+            <div class="field full"><label>ลิงก์โพสต์ Facebook</label><input id="e_fbUrl" class="input" type="url" placeholder="https://www.facebook.com/..." /></div>
+
+            <div class="field full">
               <label>ลิงก์ Google Maps</label>
               <input id="e_gmap" class="input" placeholder="https://maps.google.com/..." />
-              <small class="muted">ระบบจะดึงพิกัดอัตโนมัติจากลิงก์</small>
+              <small class="muted">วางลิงก์เพื่อแทนพิกัด</small>
             </div>
-            <div><label>ละติจูด</label><input id="e_lat" class="input" /></div>
-            <div><label>ลองจิจูด</label><input id="e_lng" class="input" /></div>
+            <div class="field"><label>ละติจูด</label><input id="e_lat" class="input" type="number" step="0.000001" /></div>
+            <div class="field"><label>ลองจิจูด</label><input id="e_lng" class="input" type="number" step="0.000001" /></div>
 
-            <!-- แสดงรูปที่มีอยู่ -->
-            <div class="full">
+            <div class="field full" style="border:1px dashed var(--line,#cbd5e1);border-radius:10px;padding:10px;">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                <input type="checkbox" id="e_approxLoc" /> ระบุตำแหน่งแบบไม่ชัด (แสดงเป็นรัศมีบนแผนที่)
+              </label>
+              <div class="row" style="margin-top:8px;align-items:center;gap:8px;flex-wrap:wrap;">
+                <select id="e_approxRadius" class="input" style="max-width:160px;">
+                  <option value="200">รัศมี 200 ม.</option>
+                  <option value="300">รัศมี 300 ม.</option>
+                  <option value="500">รัศมี 500 ม.</option>
+                  <option value="1000">รัศมี 1 กม.</option>
+                </select>
+                <button type="button" id="e_approxBtn" class="btn btn-secondary">🎲 สุ่มจุดในรัศมี</button>
+              </div>
+              <div id="e_approxOut" class="small" style="margin-top:6px;color:#2563eb;"></div>
+              <small class="muted">พิกัดจริงจะถูกเก็บไว้ไม่เปลี่ยน — ปุ่มนี้สร้างจุดแสดงผลสุ่มในรัศมีสำหรับหน้าเว็บ</small>
+            </div>
+
+            <div class="field full">
               <label>รูปที่ใช้อยู่</label>
               <div id="e_imgsList" class="preview-grid"></div>
-              <small class="small">คลิก “ลบรูป” เพื่อลบไฟล์ออกจาก Google Drive และประกาศนี้</small>
+              <small class="muted">คลิก "ลบรูป" เพื่อลบไฟล์ออกจาก Google Drive และประกาศนี้</small>
             </div>
 
-            <!-- อัปโหลดเพิ่ม -->
-            <div class="full">
-              <label>อัปโหลดรูปเพิ่ม (ได้หลายรูป)</label>
+            <div class="field full">
+              <label>อัปโหลดรูปเพิ่ม</label>
               <input type="file" id="e_imgs" class="input" accept="image/*" multiple />
               <div id="e_imgsPrev" class="preview-grid"></div>
             </div>
 
+            <div class="field full import-box">
+              <label>🚀 นำเข้ารูปจาก URL / Facebook</label>
+              <div class="import-controls">
+                <textarea id="e_importUrls" class="input" rows="2" placeholder="วาง URL รูป 1 บรรทัด/อัน"></textarea>
+                <button type="button" id="e_importUrlsBtn" class="btn btn-secondary">📥 นำเข้า</button>
+              </div>
+              <div class="import-controls">
+                <input id="e_importPostUrl" class="input" placeholder="URL โพสต์ Facebook (สาธารณะ)" />
+                <button type="button" id="e_importPostBtn" class="btn btn-secondary">📰 ดึงจากโพสต์</button>
+              </div>
+              <small class="muted">รูปจะถูกเพิ่มเข้าประกาศนี้และเซฟลง Drive ทันทีเมื่อกด</small>
+            </div>
+
             <div class="full btn-row">
               <button type="button" id="e_updateBtn" class="btn">อัปเดต</button>
-              <button type="button" id="e_deleteBtn" class="btn-ghost">ลบประกาศนี้</button>
+              <button type="button" id="e_deleteBtn" class="btn btn-ghost btn-danger">ลบประกาศนี้</button>
             </div>
           </form>
         </div>
@@ -178,7 +360,9 @@
   </main>
 
   <footer class="footer muted small">
-    © <span id="year"></span> ครูไลลาขายบ้านและที่ดิน — Admin
+    <div class="container">© <span id="year"></span> ครูไลลาขายบ้านและที่ดิน — Admin</div>
   </footer>
+
+  <div id="toastWrap" class="toast-wrap" role="status" aria-live="polite"></div>
 </body>
 </html>
